@@ -100,7 +100,9 @@ Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping
 
 ### 3.2: Bind the axis mapping to our action functions
 
-Declare the SetupPlayerInputComponent() function - exclude it from BasePawn - and the Move() and Turn() funtions in the Tank header file: 
+Declare the SetupPlayerInputComponent() function - exclude it from BasePawn - and the Move() and Turn() funtions in the Tank header file. 
+Include Speed and Turn Rate variables to fine tune the tank's movements.
+
 ```cpp
 public:
 	// Called to bind functionality to input: allows the pawn to handle input from mouse or a keyboard key
@@ -109,10 +111,16 @@ public:
 private:
 	void Move(float Value);
 	void Turn(float Value);
+	
+	UPROPERTY(EditAnywhere, Category = "Components")
+	float Speed = 600.f;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	float TurnRate = 100.f;
 ```
 
-Define our SetupPlayerInputComponent() and our Move() and Turn() functions in Tank.cpp
-Inside SetupPlayerInputComponent() bind each callback function to its correspondent user input axis or action mapping
+Define our SetupPlayerInputComponent() in Tank.cpp
+Inside SetupPlayerInputComponent() bind each user input axis or action mapping to its correspondent action callback functions
 
 ```cpp
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -126,7 +134,10 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	// Bind Fire function to the Fire action map
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATank::Fire);
 }
+```
+Define the actions callback functions Move() and Turn():
 
+```cpp
 void ATank::Move(float Value)
 {   
 	// Initialize a vector as zero to be the distance the actor is going to run
