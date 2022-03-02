@@ -1,10 +1,33 @@
 
-
 # 3rdPersonShooter
 This is a tank battle 3rd person shooter game
 
 ## Project Steps:
 1. Construct Components (BasePawn, Actor Meshes: Tank, Tower, Projectile)
+
+
+## 1: Construct Components
+
+Create a BasePawn C++ Class
+
+In its header file initialize and expose the variables that will correspond to each of the components that we will use in the world:
+
+```cpp
+private: 
+
+// Declare the components that I am going to use
+class UCapsuleComponent* CapsuleComp; 
+
+UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+UStaticMeshComponent* BaseMesh; 
+
+UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+UStaticMeshComponent* TurretMesh;
+
+UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+USceneComponent* ProjectileSpawnPoint; 
+```
+In the cpp file, Construct these components so that they are able to ve visible in our world
 
 ```cpp
 ABasePawn::ABasePawn()
