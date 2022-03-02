@@ -1,10 +1,11 @@
 
 # 3rdPersonShooter
-This is a tank battle 3rd person shooter game
+This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and code in C++. It is based on a Udemy tutorial from GameDev.tv and Unreal.
 
 ## Project Steps:
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
+3. Set Uset Input and Game Controllers
 
 ## 1: Create Components
 
@@ -16,17 +17,16 @@ In its header file initialize and expose the variables that will correspond to e
 ```cpp
 private: 
 
-// Declare the components that I am going to use
-class UCapsuleComponent* CapsuleComp; 
+	class UCapsuleComponent* CapsuleComp; 
 
-UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-UStaticMeshComponent* BaseMesh; 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* BaseMesh; 
 
-UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-UStaticMeshComponent* TurretMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* TurretMesh;
 
-UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-USceneComponent* ProjectileSpawnPoint; 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* ProjectileSpawnPoint; 
 ```
 ### 2.1: Construct Component Objects:
 In the cpp file, Construct these components so that they are able to ve visible in our world
@@ -88,6 +88,69 @@ ATank::ATank()
     Camera->SetupAttachment(SpringArm); 
 }
 ```
+In Unreal: 
+. in BP_PawnTank, in ViewPort, Class Options, change BP_PawnTank parent class from BasePawn to the Tank class we created. This way these components will be visible inside this BP.
+. In the game view port, select tank and change Auto Possess Player to Player 0.
+
+## 3: Set User Input and Game Controllers
+
+### 3.1: Create an axis mapping 
+Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping
 
 
+### 3.2: Bind the axis mapping to our action functions
+
+Declare the SetupPlayerInputComponent() function - exclude it from BasePawn - and the Move() and Turn() funtions in the Tank header file: 
+```cpp
+public:
+	// Called to bind functionality to input: allows the pawn to handle input from mouse or a keyboard key
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+private:
+	void Move(float Value);
+	void Turn(float Value);
+```
+
+Define our SetupPlayerInputComponent() and our Move() and Turn() functions in Tank.cpp
+Inside SetupPlayerInputComponent() bind each callback function to its correspondent user input axis or action mapping
+
+```cpp
+void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// Bind the move function to the move forward axis map: bind the input from the axis mapping "MoveForward" to "this" instance and perform the callback function stored in the address &ATank::Move
+	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ATank::Move);
+	// Bind the turn function to the Turn axis map
+	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ATank::Turn);  
+	// Bind Fire function to the Fire action map
+	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATank::Fire);
+}
+
+void ATank::Move(float Value)
+{   
+	// Initialize a vector as zero to be the distance the actor is going to run
+	FVector DeltaLocation = FVector::ZeroVector;
+
+	// Scale movement by the same rate of ticks per second so that movement rate is adjusted to the same tick rate per second
+	float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+	DeltaLocation.X = Value * Speed * DeltaTime;
+
+	// AddActorLocalOffset moves the actor according to its local xyz axis (not the world axis)
+	AddActorLocalOffset(DeltaLocation, true);
+}
+
+void ATank::Turn(float Value)
+{
+    // Initialize a rotator as zero
+    FRotator DeltaRotation = FRotator::ZeroRotator;
+    
+    // Scale movement by the same rate of ticks per second
+    float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+    DeltaRotation.Yaw = Value * TurnRate * DeltaTime;
+    
+    // AddActorLocalOffset moves the actor according to its local xyz axis (not the world axis)
+    AddActorLocalRotation(DeltaRotation, true);
+}
+```
 
