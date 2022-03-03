@@ -164,6 +164,13 @@ void ATank::Turn(float Value)
     AddActorLocalRotation(DeltaRotation, true);
 }
 ```
+Declare the action callback function Fire() in BasePawn.h
+
+```cpp
+protected:
+	void Fire();
+```
+
 Define the action callback function Fire() in BasePawn.cpp - because this one will be inherited by both the Tank and the Tower actors.
 
 ```cpp
@@ -184,6 +191,14 @@ void ABasePawn::Fire()
 ### 3.3: Make the Tank turret mesh follow the mouse cursor to fire at that direction (get the hit result under the cursor)
 
 In Tank, Declare and Define BeginPlay and remove it from BasePawn
+
+Declare and Define the RotateTurret() function
+
+```cpp - title: "BasePawn.h"
+protected:
+
+	void RotateTurret(FVector LookAtTarget);
+```
 
 In Tank.h, Create a pointer variable to store the PlayerController parameters
 
