@@ -28,6 +28,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* ProjectileSpawnPoint; 
 ```
+
 ### 2.1: Construct Component Objects:
 In the cpp file, Construct these components so that they are able to ve visible in our world
 
@@ -192,12 +193,26 @@ void ABasePawn::Fire()
 
 In Tank, Declare and Define BeginPlay and remove it from BasePawn
 
-Declare and Define the RotateTurret() function
+Declare and Define the RotateTurret() function in BasePawn to be inherited by both the Tank and the Tower
 
-```cpp - title: "BasePawn.h"
+in BasePawn.h:
+```cpp
 protected:
 
 	void RotateTurret(FVector LookAtTarget);
+```
+
+in BasePawn.cpp
+```cpp
+void ABasePawn::RotateTurret(FVector LookAtTarget)
+{
+	// Create a Vector and assign to it the component's location. Vector = end point - start point
+	FVector ToTarget = LookAtTarget - TurretMesh->GetComponentLocation();
+	// Create a Rotator and assign to it the Yaw from the creted vector
+	FRotator LookAtRotation = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
+	// Pass in our Rotator to set the turrent's rotation
+	TurretMesh->SetWorldRotation(LookAtRotation);
+}
 ```
 
 In Tank.h, Create a pointer variable to store the PlayerController parameters
@@ -216,6 +231,31 @@ void ATank::BeginPlay()
 	TankPlayerController = Cast<APlayerController>(GetController());
 }
 ```
+
+Then use the TankPlayerController variable to get the cursor position. Use GetHitResultUnderCursor() and pass its HitResult.ImpactPoint as a parameter to the RotateTurre() function so that it can point the turret to the cursor position.
+
+```cpp
+void ATank::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    // Get the HIT RESULT from cursor to move the turnet acording to its position
+
+    // check if player controller ref if valid
+    if (TankPlayerController)
+    {
+        FHitResult HitResult;
+
+        TankPlayerController->GetHitResultUnderCursor(
+            ECollisionChannel::ECC_Visibility, //define the trace channel
+            false, //bTraceComplex
+            HitResult); // store the data about the hit event inside a FHitResult variable
+
+        RotateTurret(HitResult.ImpactPoint);
+    }
+}
+```
+
 
 
 
