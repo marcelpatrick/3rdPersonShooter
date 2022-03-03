@@ -94,11 +94,11 @@ In Unreal:
 
 ## 3: Set User Input and Game Controllers
 
-### 3.1: Create an axis mapping 
-Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping
+### 3.1: Create an axis mapping for movement and an action mapping for firing  
+Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping / Action Mapping
 
 
-### 3.2: Bind the axis mapping to our action functions
+### 3.2: Bind the axis / action mapping to our action callback functions
 
 Declare the SetupPlayerInputComponent() function - exclude it from BasePawn - and the Move() and Turn() funtions in the Tank header file. 
 Include Speed and Turn Rate variables to fine tune the tank's movements.
@@ -180,4 +180,30 @@ void ABasePawn::Fire()
 	Projectile->SetOwner(this);
 }
 ``` 
+
+### 3.3: Make the Tank turret mesh follow the mouse cursor to fire at that direction (get the hit result under the cursor)
+
+In Tank, Declare and Define BeginPlay and remove it from BasePawn
+
+In Tank.h, Create a pointer variable to store the PlayerController parameters
+
+```cpp
+private:
+	APlayerController* TankPlayerController; 
+```
+In Tank.cpp, use GetPlayerController() and assignt its AController result to our APlayerController* variable using Cast to convert the the parent variable type (AController) into the child variable type (APlayerController). Parent <- stores <- Child / Child X does not store X Parent
+
+```cpp
+void ATank::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TankPlayerController = Cast<APlayerController>(GetController());
+}
+```
+
+
+
+
+
 
