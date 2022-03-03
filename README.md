@@ -135,7 +135,7 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATank::Fire);
 }
 ```
-Define the actions callback functions Move() and Turn():
+Define the action callback functions Move() and Turn() in Tank.cpp:
 
 ```cpp
 void ATank::Move(float Value)
@@ -164,4 +164,20 @@ void ATank::Turn(float Value)
     AddActorLocalRotation(DeltaRotation, true);
 }
 ```
+Define the action callback function Fire() in BasePawn.cpp - because this one will be inherited by both the Tank and the Tower actors.
+
+```cpp
+void ABasePawn::Fire()
+{
+	// Get location of projectile spawn point
+	FVector Location = ProjectileSpawnPoint->GetComponentLocation();
+	FRotator Rotation = ProjectileSpawnPoint->GetComponentRotation();
+
+	// Spawn the projectile from the fire point
+	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, Location, Rotation);
+	
+	// set owner of this projectile to whichever actor fired it so that we know who is firing and who is getting hit by the fired projectile
+	Projectile->SetOwner(this);
+}
+``` 
 
