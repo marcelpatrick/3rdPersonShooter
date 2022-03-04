@@ -11,7 +11,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 
 Create a BasePawn C++ Class. This will be the parent class of all of our tank and tower components in the game.
 
-### 1.1: Create Component Variables:
+### 1.1: Declare Component Variables:
 In its header file initialize and expose the variables that will correspond to each of the components that we will use in the world:
 
 ```cpp
@@ -29,7 +29,7 @@ private:
 	USceneComponent* ProjectileSpawnPoint; 
 ```
 
-### 2.1: Construct Component Objects:
+### 1.2: Construct Component Objects:
 In the cpp file, Construct these components so that they are able to ve visible in our world
 
 ```cpp
@@ -64,7 +64,7 @@ Attach the Camera and Sprint arm to the Tank to control the 3rd person view
   Unreal Engine option: open BP_PawnTank, click on AddComponent button on the view port and add a Sprint Arm and a Camera attached to it
   c++ option:
   
-### 2.1: Create Component Variables:
+### 2.1: Declare Component Variables:
   
 ```cpp
 	private:
@@ -76,7 +76,7 @@ Attach the Camera and Sprint arm to the Tank to control the 3rd person view
 		class UCameraComponent* Camera;
 ```
 
-### 2.1: Construct Component Objects:
+### 2.2: Construct Component Objects:
 
 Construct the Camera and Sprint arm components. Attach the spring arm to the root component and the camera to the spring arm
 
@@ -92,6 +92,53 @@ ATank::ATank()
 In Unreal: 
 . in BP_PawnTank, in ViewPort, Class Options, change BP_PawnTank parent class from BasePawn to the Tank class we created. This way these components will be visible inside this BP.
 . In the game view port, select tank and change Auto Possess Player to Player 0.
+
+### Tower Class
+
+Create Tower Class derived from the BasePawn Class. 
+
+Create a Tick and begin play functions in Tower.h and override them.  
+```cpp
+	public:
+		// Override the original tick function so that we can run our own tick function on top of it
+		virtual void Tick(float DeltaTime) override;
+	protected:
+		// Also override beginplay
+		virtual void BeginPlay() override;
+	private:
+		ATank* Tank; 
+```
+In Tower.cpp, Define our custom tick function to find the tank location and rotate the turret towards the tank if it is in range. Also Define our custom BeginPlay function to get Tank location in order for the turret to follow it. Then create a Tank pointer variable to store its location.
+```cpp
+// Call our custom tick function
+void ATower::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    // Shoot the tank
+
+    // Check if tank is in range 
+    if (InFireRange())
+    {
+        // And rotate turret to the tank
+        RotateTurret(Tank->GetActorLocation());
+    }
+}
+
+void ATower::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // GetPlayerPawn returns a APawn* and cannot be stored inside a ATank variable. cannot store a parent type inside a child pointer. Use Cast
+    Tank = Cast<ATank>(UGameplayStatics::GetPlayerPawn(this, 0));
+}
+```
+
+
+On BP_PawnTurret change its parent class to Tower so that the Turret properties inherit those of the Tower i.e. turning.
+
+### 2.3: 
+
 
 ## 3: Set User Input and Game Controllers
 
