@@ -57,26 +57,26 @@ ProjectileSpawnPoint->SetupAttachment(TurretMesh);
 Create Tank and Tower components that will inherit from BasePawn parent component.
 On Unreal Engine, right click on BasePawn and select "create c++ class derived from this class"
 
-### Tank Class:
+### 2.1: Tank Class:
 
 The tank will be our player
 Attach the Camera and Sprint arm to the Tank to control the 3rd person view
   Unreal Engine option: open BP_PawnTank, click on AddComponent button on the view port and add a Sprint Arm and a Camera attached to it
   c++ option:
   
-### 2.1: Declare Component Variables:
+### 2.1.1: Declare Component Variables:
   
 ```cpp
-	private:
+private:
 
-		UPROPERTY(VisibleAnywhere, Category = "Components")
-		class USpringArmComponent* SpringArm;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class USpringArmComponent* SpringArm;
 
-		UPROPERTY(VisibleAnywhere, Category = "Components")
-		class UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UCameraComponent* Camera;
 ```
 
-### 2.2: Construct Component Objects:
+### 2.1.2: Construct Component Objects:
 
 Construct the Camera and Sprint arm components. Attach the spring arm to the root component and the camera to the spring arm
 
@@ -93,11 +93,43 @@ In Unreal:
 . in BP_PawnTank, in ViewPort, Class Options, change BP_PawnTank parent class from BasePawn to the Tank class we created. This way these components will be visible inside this BP.
 . In the game view port, select tank and change Auto Possess Player to Player 0.
 
-### Tower Class
+### 2.2: Tower Class
 
 Create Tower Class derived from the BasePawn Class. 
 
 On BP_PawnTurret change its parent class to Tower so that the Turret properties inherit those of the Tower i.e. turning.
+
+### 2.3: Projectile Class:
+
+Create a projectile c++ class with Actor as parent.
+
+### 2.3.1: Declare Component Variables.
+
+In Projectile.h
+```cpp
+private:
+	// 1- Create a UStaticMesh component variable
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UStaticMeshComponent* ProjectileMesh;
+```
+
+### 2.3.2: Construct Component Objects.
+```cpp
+AProjectile::AProjectile()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set to false because we don't need this actor to call tick on every frame
+	PrimaryActorTick.bCanEverTick = false;
+
+	// 3- Construct or Declare our UStaticMesh variable to be the representation of this component in the world and assign its name
+	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Projectile Mesh"));
+
+	// 4- Set this component as the root component of our object
+	RootComponent = ProjectileMesh;
+}
+```
+
+Create a new BluePrint based on this projectile c++ class. Open it and select the projectile static mesh for this BP.
 
 
 ## 3: Set User Input and Game Controllers
