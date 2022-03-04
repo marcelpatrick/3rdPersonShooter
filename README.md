@@ -97,47 +97,7 @@ In Unreal:
 
 Create Tower Class derived from the BasePawn Class. 
 
-Create a Tick and begin play functions in Tower.h and override them.  
-```cpp
-	public:
-		// Override the original tick function so that we can run our own tick function on top of it
-		virtual void Tick(float DeltaTime) override;
-	protected:
-		// Also override beginplay
-		virtual void BeginPlay() override;
-	private:
-		ATank* Tank; 
-```
-In Tower.cpp, Define our custom tick function to find the tank location and rotate the turret towards the tank if it is in range. Also Define our custom BeginPlay function to get Tank location in order for the turret to follow it. Then create a Tank pointer variable to store its location.
-```cpp
-// Call our custom tick function
-void ATower::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-
-    // Shoot the tank
-
-    // Check if tank is in range 
-    if (InFireRange())
-    {
-        // And rotate turret to the tank
-        RotateTurret(Tank->GetActorLocation());
-    }
-}
-
-void ATower::BeginPlay()
-{
-    Super::BeginPlay();
-
-    // GetPlayerPawn returns a APawn* and cannot be stored inside a ATank variable. cannot store a parent type inside a child pointer. Use Cast
-    Tank = Cast<ATank>(UGameplayStatics::GetPlayerPawn(this, 0));
-}
-```
-
-
 On BP_PawnTurret change its parent class to Tower so that the Turret properties inherit those of the Tower i.e. turning.
-
-### 2.3: 
 
 
 ## 3: Set User Input and Game Controllers
@@ -303,6 +263,94 @@ void ATank::Tick(float DeltaTime)
 }
 ```
 
+### 3.4: Implement the fire function for the Towers (including a timer)
+
+In Tower.h, Create a Tick and begin play functions and override them. Also create a ATank* pointer to store the Tank's location in order for the turret to find it and follow it. Also, create a variable type FTimerHandle to store info about the world time and pass this as parameters to set our timer if a delay for the fire rate. Declare a CheckFireCondition() function to check if the Towers are in the right moment to fire and a InFireRange() function to trigger if Tank is within fire range: 
+```cpp
+	public:
+		// Override the original tick function so that we can run our own tick function on top of it
+		virtual void Tick(float DeltaTime) override;
+	protected:
+		// Also override beginplay
+		virtual void BeginPlay() override;
+	private:
+		ATank* Tank; 
+
+		UPROPERTY(EditDefaultsOnly, Category = "Combat")
+		float FireRange = 100.f; 
+
+		FTimerHandle FireRateTimerHandle; 
+		float FireRate = 2.f;
+		
+		// call back function
+		void CheckFireCondition();
+
+		bool InFireRange();
+```
+In Tank.h, Declare a bool to tell if the tank is still alive, if it is not, stop firing at it
+```cpp
+	public:
+		// boolean to check whether the tank is still alive or if it has died
+		bool bAlive = true;
+```
+
+In Tower.cpp, Define our custom tick function to find the tank location and rotate the turret towards the tank if it is in range. Also Define our custom BeginPlay function to get Tank location in order for the turret to follow it. Then create a Tank pointer variable to store its location and set the timer. Also, Define CheckFireCondition() and InFireRange functions.
+```cpp
+// Call our custom tick function
+void ATower::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    // Shoot the tank
+
+    // Check if tank is in range 
+    if (InFireRange())
+    {
+        // And rotate turret to the tank
+        RotateTurret(Tank->GetActorLocation());
+    }
+}
+
+void ATower::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // GetPlayerPawn returns a APawn* and cannot be stored inside a ATank variable. cannot store a parent type inside a child pointer. Use Cast
+    Tank = Cast<ATank>(UGameplayStatics::GetPlayerPawn(this, 0));
+
+    // Set timer for the fire rate
+    GetWorldTimerManager().SetTimer(FireRateTimerHandle, this, &ATower::CheckFireCondition, FireRate, true);
+}
+
+void ATower::CheckFireCondition()
+{
+    
+    if (Tank == nullptr)
+    {
+        return;
+    }
+
+    // only shoot if tank is still alive and when it is dead stop shooting it
+    if (InFireRange() && Tank->bAlive)
+    {
+        Fire();
+    }
+}
+
+// Find distance to the tank
+bool ATower::InFireRange()
+{
+    if (Tank)
+    {
+        float Distance = FVector::Dist(GetActorLocation(), Tank->GetActorLocation());
+        if (Distance <= FireRange)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+```
 
 
 
