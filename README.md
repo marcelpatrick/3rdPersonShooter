@@ -204,12 +204,17 @@ void ATank::Turn(float Value)
     AddActorLocalRotation(DeltaRotation, true);
 }
 ```
-Declare the action callback function Fire() in BasePawn.h
+In BasePawn.h, Declare the action callback function Fire(). Then Use TSubclassOf<> to spawn an object in our world that reflects a Blueprint and stores a UClass type object. UClass objects are Unreal objects that can communicate between c++ and Unreal blueprints. UClass translates any type of c++ class into an Unreal compatible class. This is necessary for the C++ class to be recognized by the Unreal Engine editor.
 
 ```cpp
 protected:
 	void Fire();
+	
+	// To use C++ functions to spawn actors (AProjectile) that are based on blueprints we need to use TSubClassOf<>
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<class AProjectile> ProjectileClass;
 ```
+In the tank blueprint > Combat > Projectile Class set BP_Projectile as the Projectile class to be spawned by the Tank. Now the Tank's projectile class is set to our BP_Projectile type, which is a UClass type. Meaning that now our tank will spawn a projectile that is based on the blueprint that we created, BP_Projectile and which already contains the static mesh of the projectile 3d representation. Had we not used TSubclassOf<> it would only spawn an object based on a raw c++ class which could not contain a static mesh. 
 
 Define the action callback function Fire() in BasePawn.cpp - because this one will be inherited by both the Tank and the Tower actors.
 
@@ -295,7 +300,7 @@ void ATank::Tick(float DeltaTime)
 }
 ```
 
-### 3.4: Implement the fire function for the Towers (including a timer)
+### 3.4: Implement the Fire function for the Towers (including a timer)
 
 In Tower.h, Create a Tick and begin play functions and override them. Also create a ATank* pointer to store the Tank's location in order for the turret to find it and follow it. Also, create a variable type FTimerHandle to store info about the world time and pass this as parameters to set our timer if a delay for the fire rate. Declare a CheckFireCondition() function to check if the Towers are in the right moment to fire and a InFireRange() function to trigger if Tank is within fire range: 
 ```cpp
