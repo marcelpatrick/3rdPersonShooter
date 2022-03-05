@@ -64,7 +64,7 @@ Attach the Camera and Sprint arm to the Tank to control the 3rd person view
   Unreal Engine option: open BP_PawnTank, click on AddComponent button on the view port and add a Sprint Arm and a Camera attached to it
   c++ option:
   
-### 2.1.1: Declare Component Variables:
+#### 2.1.1: Declare Component Variables:
   
 ```cpp
 private:
@@ -76,7 +76,7 @@ private:
 	class UCameraComponent* Camera;
 ```
 
-### 2.1.2: Construct Component Objects:
+#### 2.1.2: Construct Component Objects:
 
 Construct the Camera and Sprint arm components. Attach the spring arm to the root component and the camera to the spring arm
 
@@ -103,7 +103,7 @@ On BP_PawnTurret change its parent class to Tower so that the Turret properties 
 
 Create a projectile c++ class with Actor as parent.
 
-### 2.3.1: Declare Component Variables.
+#### 2.3.1: Declare Component Variables.
 
 In Projectile.h
 ```cpp
@@ -113,7 +113,7 @@ private:
 	UStaticMeshComponent* ProjectileMesh;
 ```
 
-### 2.3.2: Construct Component Objects.
+#### 2.3.2: Construct Component Objects.
 ```cpp
 AProjectile::AProjectile()
 {
