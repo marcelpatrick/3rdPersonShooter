@@ -5,7 +5,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 ## Project Steps:
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
-3. Set Uset Input and Game Controllers
+3. Actions: Set Uset Input and Game Controllers
 
 ## 1: Create Components
 
@@ -132,7 +132,7 @@ AProjectile::AProjectile()
 Create a new BluePrint based on this projectile c++ class. Open it and select the projectile static mesh for this BP.
 
 
-## 3: Set User Input and Game Controllers
+## 3: Actions: Set User Input and Game Controllers
 
 ### 3.1: Create an axis mapping for movement and an action mapping for firing  
 Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping / Action Mapping
@@ -204,6 +204,8 @@ void ATank::Turn(float Value)
     AddActorLocalRotation(DeltaRotation, true);
 }
 ```
+### 3.3: Set the Fire Function:
+
 In BasePawn.h, Declare the action callback function Fire(). Then Use TSubclassOf<> to spawn an object in our world that reflects a Blueprint and stores a UClass type object. UClass objects are Unreal objects that can communicate between c++ and Unreal blueprints. UClass translates any type of c++ class into an Unreal compatible class. This is necessary for the C++ class to be recognized by the Unreal Engine editor.
 
 ```cpp
@@ -214,7 +216,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TSubclassOf<class AProjectile> ProjectileClass;
 ```
-In the tank blueprint > Combat > Projectile Class set BP_Projectile as the Projectile class to be spawned by the Tank. Now the Tank's projectile class is set to our BP_Projectile type, which is a UClass type. Meaning that now our tank will spawn a projectile that is based on the blueprint that we created, BP_Projectile and which already contains the static mesh of the projectile 3d representation. Had we not used TSubclassOf<> it would only spawn an object based on a raw c++ class which could not contain a static mesh. 
+In the tank blueprint > Combat > Projectile Class set BP_Projectile as the Projectile class to be spawned by the Tank. Now the Tank's projectile class is set to our BP_Projectile type, which is a UClass type. Meaning that now our tank will spawn a projectile that is based on the blueprint that we created, BP_Projectile and which already contains the static mesh of the projectile 3d representation. Had we not used TSubclassOf<> it would only spawn an object based on a raw c++ class which could not contain a static mesh. Do the same thing in BP_PawnTower blueprint.
 
 Define the action callback function Fire() in BasePawn.cpp - because this one will be inherited by both the Tank and the Tower actors.
 
@@ -232,8 +234,26 @@ void ABasePawn::Fire()
 	Projectile->SetOwner(this);
 }
 ``` 
+#### 3.3.1: Set the Projectile movement: 
 
-### 3.3: Make the Tank turret mesh follow the mouse cursor to fire at that direction (get the hit result under the cursor)
+In Projectile.h, Declare the movement component variable
+```cpp
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Movement")
+	class UProjectileMovementComponent* ProjectileMovementComponent;
+```
+
+In Projectile.cpp, Define the projectile movement component 
+```cpp
+AProjectile::AProjectile()
+{
+
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
+	ProjectileMovementComponent->MaxSpeed = 1300.f;
+	ProjectileMovementComponent->InitialSpeed = 1300.f;
+```
+
+### 3.4: Make the Tank turret mesh follow the mouse cursor to fire at that direction (get the hit result under the cursor)
 
 In Tank, Declare and Define BeginPlay and remove it from BasePawn
 
@@ -300,7 +320,7 @@ void ATank::Tick(float DeltaTime)
 }
 ```
 
-### 3.4: Implement the Fire function for the Towers (including a timer)
+### 3.5: Implement the Fire function for the Towers (including a timer)
 
 In Tower.h, Create a Tick and begin play functions and override them. Also create a ATank* pointer to store the Tank's location in order for the turret to find it and follow it. Also, create a variable type FTimerHandle to store info about the world time and pass this as parameters to set our timer if a delay for the fire rate. Declare a CheckFireCondition() function to check if the Towers are in the right moment to fire and a InFireRange() function to trigger if Tank is within fire range: 
 ```cpp
