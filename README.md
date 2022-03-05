@@ -6,6 +6,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
 3. Actions: Set Uset Input and Game Controllers
+4. Game Logic and Rules (Hit Events, Health Component, Apply Damage, Death, Winning, Loosing)
 
 ## 1: Create Components
 
@@ -410,6 +411,9 @@ bool ATower::InFireRange()
 ```
 
 
+## 4. Game Logic and Rules
+
+Parei no Hit Events: 157
 
 
 
