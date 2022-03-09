@@ -5,8 +5,9 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 ## Project Steps:
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
-3. Actions: Set Uset Input and Game Controllers
-4. Game Logic and Rules (Hit Events, Health Component, Apply Damage, Death, Winning, Loosing)
+3. User Input and Game Controllers
+4. Actions and Events: (Hit Events, Health Component, Apply Damage)
+5. Game Rules and Game Mode: (Death, Winning, Loosing)
 
 ## 1: Create Components
 
@@ -133,7 +134,7 @@ AProjectile::AProjectile()
 Create a new BluePrint based on this projectile c++ class. Open it and select the projectile static mesh for this BP.
 
 
-## 3: Actions: Set User Input and Game Controllers
+## 3: User Input and Game Controllers
 
 ### 3.1: Create an axis mapping for movement and an action mapping for firing  
 Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping / Action Mapping
@@ -411,7 +412,7 @@ bool ATower::InFireRange()
 ```
 
 
-## 4. Game Logic and Rules
+## 4. Actions and Events
 
 Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit(), also in the Projectile class, bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function inside it > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken(), also in the HealthComponent class, bound to it by AddDynamic > DamageTaken() Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors.
 
@@ -535,6 +536,9 @@ void UHealthComponent::BeginPlay()
 {
 	// Access the owner of this component to bind the DamageTaken callback to the OnTakeAnyDamage delegate that is in the owner of HealthComponen. Returns a AActor pointer which is the component that owns this HealthComponent.
 	GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::DamageTaken);
+	
+	// Get access to the gamemode. gamemode returns a AgamemodeBase variable and we are trying to store in a child class ToonTanksGameMode - so we need to cast to convert the AGameModeBase var into a ToonTanksGameMode var
+	ToonTanksGameMode = Cast<AToonTanksGameMode>(UGameplayStatics::GetGameMode(this));
 }
 ```
 
@@ -567,11 +571,159 @@ void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDa
 ```
 
 
+### 5: Game Rules and Game Mode.
+
+The Game Mode will be responsible for defining winning, loosing and death conditions, starting and ending the game and defining who the player0 is (default pawn).
+
+### 5.1: Setup.
+
+Create a new game mode class ToonTanksGameMode with Game Mode Base as parent class.
+
+Create a new blueprint BP_ToonTanksGameMode based on this new class.
+
+In Edit > Project settings > Maps and Modes > Default Modes > Default Game Mode, change the default game mode to BP_ToonTanksGameMode
+
+In BP_ToonTanksGameMode > Classes > Default Pawn Class, change it to BP_PawnTank so that this will define the default pawn to be possessed when we start the game as being the tank - we will play as the tank actor
+
+Select the tank actor, in its parameters Pawn > Auto Possess player selct Player0.
+
+#### 5.2: Death.
+
+Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit(), also in the Projectile class, bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function inside it > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken(), also in the HealthComponent class, bound to it by AddDynamic > DamageTaken() Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors > 
+*** If Health <= 0 *** > call the ActorDied() function in the ToonTanksGameMode class > then call the HandleDestruction() function in the BasePawn class that defines what happens when the actor gets destroyed - special effects, particles, sound - and hides the actor from the game so that it is no longer visible.
+
+#### 5.3: ActorDied() function
+
+In ToonTanksGameMode Declare the ActorDied() function. Add a Tank variable to check if the dead actor was the tank or the tower. Override BeginPlay().
+```cpp
+public:
+
+// Actor died function. needs to be public because it will be called from the HealthComponent
+	void ActorDied(AActor* DeadActor);
+
+protected:
+
+	// override begin play to store the tank pointer
+	virtual void BeginPlay() override;
+
+private:
+
+	// variable to store the tank pointer 
+	class ATank* Tank;
+```
+
+In ToonTanksGameMode.cpp Define ActorDied() function. If the actor who died was the tank (and not the tower) call the HandleDestruction() function.
+Define BeginPlay() and initialize the tank variable as player0.
+```cpp
+void AToonTanksGameMode::ActorDied(AActor* DeadActor)
+{
+    // check if the dead actor is the tank
+    if (DeadActor == Tank)
+    {
+        Tank->HandleDestruction();
+
+        // Check if player controller is valid
+            // access the private function through a public getter function
+            // check if out var that stores the player controller is valid
+        if (ToonTanksPlayerController)
+        {
+            // disable input, disable mouse cursor
+                // include our creted class ToonTanksPlayerController, declare it and access its method SetPlayerEnabled state passing false as a boolean
+            ToonTanksPlayerController->SetPlayerEnabledState(false);
+        }   
+        // false for not winning the game
+        GameOver(false);
+    }
+    // if the dead actor is the tower instead of the tank
+    else if (ATower* DestroyedTower = Cast<ATower>(DeadActor))  /*take the result of the DeadActor cast to ATower type and assign to a local variable in this condition*/
+    {
+        // if this cast is successful
+        DestroyedTower->HandleDestruction();
+
+        // count how many towers were destroyed
+            // Decrement towers count everytime a tower dies
+        --TargetTowers;
+        // end game when all towers are killed
+        if (TargetTowers == 0)
+        {
+            GameOver(true);
+        }
+    }
+}
+
+void AToonTanksGameMode::BeginPlay()
+{
+    // Use super to access parent BeginPlay functionality 
+    Super::BeginPlay();
+
+    HandleGameStart();
+}
+
+```
 
 
 
+#### 5.4: HandleDestruction() function.
+
+In BasePawn.h, declare the HandleDestruction() function:
+```cpp
+public:
+	// Create handle destruction. It will be called from a different class, ToonTanksGameMode class, so it needs to be public
+	void HandleDestruction();
+```
+In BasePawn.cpp Define HandleDestruction() funtion:
+```cpp
+// defines what happens when the basepawn and its inherited classes die
+void ABasePawn::HandleDestruction()
+{
+	// Show the explosion when the base pawn object dies
+	
+	
+}
+```
+Implement HandleDestruction() in the Tower class.
+
+In Tower.h, declare the HandleDestruction() function:
+```cpp
+public:
+	// Create handle destruction. It will be called from a different class, ToonTanksGameMode class, so it needs to be public
+	void HandleDestruction();
+```
+In Tower.cpp Define HandleDestruction() funtion and in it call Super::HandleDestruction() to inherit the implementations of this function from the BasePawn.
+```cpp
+// defines what happens when the basepawn and its inherited classes die
+void ATower::HandleDestruction()
+{
+	Super::HandleDestruction();
+	Destroy();
+}
+```
+
+Implement HandleDestruction() in the tank class.
+
+In Tank.h, declare the HandleDestruction() function and Declare a variable to store the tank player controller.
+```cpp
+public:
+	// Create handle destruction. It will be called from a different class, ToonTanksGameMode class, so it needs to be public
+	void HandleDestruction();
+	
+	// A Getter function to access the private variable player controller from ToonTanksGameMode
+	// const because getter functions don't change any variables in this class, it only returns that private variable as it is
+	APlayerController* GetTankPlayerController() const { return TankPlayerController; }
+```
+In Tank.cpp Define HandleDestruction() funtion and in it call Super::HandleDestruction() to inherit the implementations of this function from the BasePawn.
+```cpp
+// defines what happens when the basepawn and its inherited classes die
+void ATank::HandleDestruction()
+{
+	Super::HandleDestruction();
+	SetActorHiddenInGame(true);
+	SetActorTickEnabled(false);
+}
+```
 
 
+*** PAREI 161: 18MIN ***
 
 
 
