@@ -413,7 +413,7 @@ bool ATower::InFireRange()
 
 ## 4. Game Logic and Rules
 
-Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit() bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken() bound to it by AddDynamic > DamageTaken() Callback function updates the HealthComponent variables decreasing the health of the damaged actors.
+Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit(), also in the Projectile class, bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function inside it > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken(), also in the HealthComponent class, bound to it by AddDynamic > DamageTaken() Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors.
 
 ### 4.1: Hit event
 
@@ -540,7 +540,7 @@ void UHealthComponent::BeginPlay()
 
 #### 4.3: Callback Function:
 
-In HealthComponent.h Declare the Callback Function.
+In HealthComponent.h Declare the Callback Function DamageTaken()
 ```cpp
 private:
 	// My custom callback function
@@ -554,7 +554,7 @@ private:
 		);
 ```
 
-In HealthComponent.cpp Define the Callback Function that is bound to OnTakeAnyDamage() Multicast Delegate Function that owns this HealthComponent. Inside it specify what kind of damage it will cause to the Health variables. 
+In HealthComponent.cpp Define the Callback Function DamageTaken() that is bound to OnTakeAnyDamage() Multicast Delegate Function that owns this HealthComponent. Inside it specify what kind of damage it will cause to the Health variables. 
 ```cpp
 void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *Instigator, AActor *DamageCauser)
 {
