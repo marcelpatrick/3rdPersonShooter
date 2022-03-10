@@ -417,7 +417,7 @@ bool ATower::InFireRange()
 
 ### 4.1: Hit event
 
-**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
+- **HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
 
 #### 4.1.1: Multicast Delegate:
 
@@ -465,8 +465,8 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 
 ### 4.2: Damage Event: 
 
-**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
-	**DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
+- **HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
+   - **DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
 
 #### 4.2.1: Apply Damage OnHit and generate the Damage Event:
 
