@@ -5,9 +5,9 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 ## Project Steps:
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
-3. User Input and Game Controllers
+3. User Input
 4. Actions and Events: (Hit Events, Health Component, Apply Damage)
-5. Game Rules and Game Mode: (Death, Winning, Loosing)
+5. Game Rules and Game Mode and Game Controller: (Death, Winning, Loosing)
 
 ## 1: Create Components
 
@@ -134,11 +134,11 @@ AProjectile::AProjectile()
 Create a new BluePrint based on this projectile c++ class. Open it and select the projectile static mesh for this BP.
 
 
-## 3: User Input and Game Controllers
+## 3: User Input
+
 
 ### 3.1: Create an axis mapping for movement and an action mapping for firing  
 Unreal > Edit > Project Settings > Input > Bindings > Axis Mapping / Action Mapping
-
 
 ### 3.2: Bind the axis / action mapping to our action callback functions
 
@@ -577,10 +577,12 @@ void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDa
 
 The Game Mode will be responsible for defining winning, loosing and death conditions, starting and ending the game and defining who the player0 is (default pawn).
 
-### 5.1: Setup.
+### 5.1: Game Mode.
 
+#### Create a C++ class:
 Create a new game mode class ToonTanksGameMode with Game Mode Base as parent class.
 
+#### Create a blueprint based on this C++ class:
 Create a new blueprint BP_ToonTanksGameMode based on this new class.
 
 In Edit > Project settings > Maps and Modes > Default Modes > Default Game Mode, change the default game mode to BP_ToonTanksGameMode
@@ -589,7 +591,58 @@ In BP_ToonTanksGameMode > Classes > Default Pawn Class, change it to BP_PawnTank
 
 Select the tank actor, in its parameters Pawn > Auto Possess player selct Player0.
 
-#### 5.2: Death.
+
+### 5.2: Implement our custom Player Controller class
+
+This class will be used to define the mouse cursor. It will also be called from the GameMode when the actor dies to disable input.
+
+#### 5.2.1: Create a C++ class.
+Create ToonTanksPlayerController c++ class. 
+
+##### 5.2.1.1: Declare:
+In ToonTanksPlayerController.h, Declare a function to seitch whether inputs will be enabled or disabled.
+```cpp
+public:
+	// set player enabled state to add inputs to move the tank
+	void SetPlayerEnabledState(bool bPlayerEnabled);
+```
+
+##### 5.2.1.2: Define:
+In ToonTanksPlayerController.cpp, Define this function.
+```cpp
+// if the player should be enabled, use EnableInput() to do it, else, use DisableInput() to disable it.
+void AToonTanksPlayerController::SetPlayerEnabledState(bool bPlayerEnabled)
+{
+    if (bPlayerEnabled)
+    {
+        // access the pawn and enable or disable input
+        GetPawn()->EnableInput(this);
+    }
+    else
+    {
+        GetPawn()->DisableInput(this);
+    }
+
+    // Disable or enable coursor based on whether or not the player should be enabled
+    bShowMouseCursor = bPlayerEnabled;
+}
+```
+
+
+
+
+******** PAREI 162: 7:00********************
+
+
+
+
+#### 5.2.2: Create a blueprint based on the C++ class
+Create a BP_ToonTanksPlayerController blueprint based on this ToonTanksPlayerController class.
+
+Open BP_ToonTanksPlayerController, in Class > PlayerController class: change the player controller to our custom BP_ToonTanksPlayerController.
+
+
+#### 5.3: Death.
 
 - **HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
    - **DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
