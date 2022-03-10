@@ -414,11 +414,10 @@ bool ATower::InFireRange()
 
 ## 4. Actions and Events
 
-**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
 
 ### 4.1: Hit event
 
-Logic sequence: Projectile mesh hits some actor in the world > generates a Hit Event > Multicast Delegate - OnComponentHit() - calls the Callback functions subscribed to its invocation list - OnHit() - and broadcasts the FHitResult > Callback functions will execute whatever actions were defined inside them.
+**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
 
 #### 4.1.1: Multicast Delegate:
 
