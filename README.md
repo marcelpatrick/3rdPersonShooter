@@ -414,7 +414,7 @@ bool ATower::InFireRange()
 
 ## 4. Actions and Events
 
-Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit(), also in the Projectile class, bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function inside it > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken(), also in the HealthComponent class, bound to it by AddDynamic > DamageTaken() Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors.
+**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
 
 ### 4.1: Hit event
 
@@ -465,6 +465,9 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 ```
 
 ### 4.2: Damage Event: 
+
+**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
+	**DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
 
 #### 4.2.1: Apply Damage OnHit and generate the Damage Event:
 
@@ -589,8 +592,9 @@ Select the tank actor, in its parameters Pawn > Auto Possess player selct Player
 
 #### 5.2: Death.
 
-Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function OnComponentHit, in the Projectile class, listens to this event and broadcasts FHitResult to the Callback Function OnHit(), also in the Projectile class, bound to it by AddDynamic > the OnHit() Callback function will apply the damage using UGamePlaystatics::ApplyDamage() function inside it > UGameplayStatics::ApplyDamage() triggers a Damage Event > the Multicast Delegate function OnTakeAnyDamage, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function DamageTaken(), also in the HealthComponent class, bound to it by AddDynamic > DamageTaken() Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors > 
-*** If Health <= 0 *** > call the ActorDied() function in the ToonTanksGameMode class > then call the HandleDestruction() function in the BasePawn class that defines what happens when the actor gets destroyed - special effects, particles, sound - and hides the actor from the game so that it is no longer visible.
+**HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
+	**DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
+		**DEATH**: > (If Health <= 0) > From inside **DamageTaken()** callback function, call the **ActorDied()** function in the ToonTanksGameMode class > From inside **ActorDied()**, call the **HandleDestruction()** function in the BasePawn class that defines what happens when the actor gets destroyed - special effects, particles, sound - and hides the actor from the game so that it is no longer visible.
 
 #### 5.3: ActorDied() function
 
@@ -661,6 +665,20 @@ void AToonTanksGameMode::BeginPlay()
 
 ```
 
+Call the ActorDied() function from the HealthComponent class to perform the death actions when Health reaches 0.
+
+In HealthComponent.cpp, call ActorDied() from the DamageTaken() callback function to perform death when damage makes the Health variables reach 0.
+```cpp
+void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *Instigator, AActor *DamageCauser)
+{
+	// Check if health reached zero and the GameMode is valid and then call function actor died passing the actor that was hit
+	if (Health <= 0.f && ToonTanksGameMode)
+	{
+		ToonTanksGameMode->ActorDied(DamagedActor);
+		UE_LOG(LogTemp, Warning, TEXT("ator que morreu**********: %s"), *DamagedActor->GetName());
+	}	
+}
+```
 
 
 #### 5.4: HandleDestruction() function.
@@ -722,8 +740,6 @@ void ATank::HandleDestruction()
 }
 ```
 
-
-*** PAREI 161: 18MIN ***
 
 
 
