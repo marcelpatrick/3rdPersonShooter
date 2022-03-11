@@ -624,12 +624,12 @@ Open BP_ToonTanksPlayerController, in Class > PlayerController class: change the
 In BP_ToonTanksPlayerController, Mouse interface > default mouse cursor > change it to crosshairs
 
 
-### 5.2: Game Mode
+#### 5.2: Game Mode
 
-#### 5.2.1: Create a C++ class:
+##### 5.2.1: Create a C++ class:
 Create a new game mode class ToonTanksGameMode with Game Mode Base as parent class.
 
-#### 5.2.2: Create a blueprint based on this C++ class:
+##### 5.2.2: Create a blueprint based on this C++ class:
 Create a new blueprint BP_ToonTanksGameMode based on this new class.
 
 In Edit > Project settings > Maps and Modes > Default Modes > Default Game Mode, change the default game mode to BP_ToonTanksGameMode
@@ -638,7 +638,7 @@ In BP_ToonTanksGameMode > Classes > Default Pawn Class, change it to BP_PawnTank
 
 Select the tank actor, in its parameters Pawn > Auto Possess player selct Player0.
 
-#### 5.3.1: Declare the variables and functions
+##### 5.2.3: Declare the variables and functions
 In ToonTanksGameMode.h, override BeginPlay() so that we can define out own actions when the game begins.
 Declare a StartGame() function to allows us to define in which moment the game will start.
 Declare a pointer variable that allows us to have access to the player controller
@@ -656,7 +656,7 @@ private:
 	class AToonTanksPlayerController* ToonTanksPlayerController;
 ```
 
-#### 5.3.2: Define the variables and functions
+##### 5.2.4: Define the variables and functions
 In ToonTanksGameMode.cpp set value of the player controller pointer, define the game start and define the timer
 ```cpp
 
