@@ -577,37 +577,25 @@ void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDa
 
 The Game Mode will be responsible for defining winning, loosing and death conditions, starting and ending the game and defining who the player0 is (default pawn).
 
-### 5.1: Game Mode.
 
-#### Create a C++ class:
-Create a new game mode class ToonTanksGameMode with Game Mode Base as parent class.
+#### 5.1: Player Controller
 
-#### Create a blueprint based on this C++ class:
-Create a new blueprint BP_ToonTanksGameMode based on this new class.
-
-In Edit > Project settings > Maps and Modes > Default Modes > Default Game Mode, change the default game mode to BP_ToonTanksGameMode
-
-In BP_ToonTanksGameMode > Classes > Default Pawn Class, change it to BP_PawnTank so that this will define the default pawn to be possessed when we start the game as being the tank - we will play as the tank actor
-
-Select the tank actor, in its parameters Pawn > Auto Possess player selct Player0.
-
-
-### 5.2: Implement our custom Player Controller class
+Implement our custom Player Controller class
 
 This class will be used to define the mouse cursor. It will also be called from the GameMode when the actor dies to disable input.
 
-#### 5.2.1: Create a C++ class.
+##### 5.1.1: Create a C++ class.
 Create ToonTanksPlayerController c++ class. 
 
-##### 5.2.1.1: Declare:
-In ToonTanksPlayerController.h, Declare a function to seitch whether inputs will be enabled or disabled.
+###### 5.1.1.1: Declare:
+In ToonTanksPlayerController.h, Declare a function to switch whether inputs will be enabled or disabled.
 ```cpp
 public:
 	// set player enabled state to add inputs to move the tank
 	void SetPlayerEnabledState(bool bPlayerEnabled);
 ```
 
-##### 5.2.1.2: Define:
+###### 5.1.1.2: Define:
 In ToonTanksPlayerController.cpp, Define this function.
 ```cpp
 // if the player should be enabled, use EnableInput() to do it, else, use DisableInput() to disable it.
@@ -628,18 +616,97 @@ void AToonTanksPlayerController::SetPlayerEnabledState(bool bPlayerEnabled)
 }
 ```
 
-
-
-
-******** PAREI 162: 7:00********************
-
-
-
-
-#### 5.2.2: Create a blueprint based on the C++ class
+#### 5.1.2: Create a blueprint based on the C++ class
 Create a BP_ToonTanksPlayerController blueprint based on this ToonTanksPlayerController class.
 
 Open BP_ToonTanksPlayerController, in Class > PlayerController class: change the player controller to our custom BP_ToonTanksPlayerController.
+
+In BP_ToonTanksPlayerController, Mouse interface > default mouse cursor > change it to crosshairs
+
+
+### 5.2: Game Mode
+
+#### 5.2.1: Create a C++ class:
+Create a new game mode class ToonTanksGameMode with Game Mode Base as parent class.
+
+#### 5.2.2: Create a blueprint based on this C++ class:
+Create a new blueprint BP_ToonTanksGameMode based on this new class.
+
+In Edit > Project settings > Maps and Modes > Default Modes > Default Game Mode, change the default game mode to BP_ToonTanksGameMode
+
+In BP_ToonTanksGameMode > Classes > Default Pawn Class, change it to BP_PawnTank so that this will define the default pawn to be possessed when we start the game as being the tank - we will play as the tank actor
+
+Select the tank actor, in its parameters Pawn > Auto Possess player selct Player0.
+
+#### 5.3.1: Declare the variables and functions
+In ToonTanksGameMode.h, override BeginPlay() so that we can define out own actions when the game begins.
+Declare a StartGame() function to allows us to define in which moment the game will start.
+Declare a pointer variable that allows us to have access to the player controller
+```cpp
+protected:
+	// override begin play to store the tank pointer
+	virtual void BeginPlay() override;
+
+	// a blueprint implementable event funtion is a function that can be called from the code and have it's functionalities and behavior implemented in the blueprint
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartGame();
+	
+private:
+	// pointer var to access player controller
+	class AToonTanksPlayerController* ToonTanksPlayerController;
+```
+
+#### 5.3.2: Define the variables and functions
+In ToonTanksGameMode.cpp set value of the player controller pointer, define the game start and define the timer
+```cpp
+
+void AToonTanksGameMode::BeginPlay()
+{
+    // Use super to access parent BeginPlay functionality 
+    Super::BeginPlay();
+
+    HandleGameStart();
+}
+
+void AToonTanksGameMode::HandleGameStart()
+{
+
+    //get tower count
+    TargetTowers = GetTargetTowerCount();
+
+    // poiter to APlayerPawn in a form of ATank pointer.
+    Tank = Cast<ATank>(UGameplayStatics::GetPlayerPawn(this /*context*/, 0 /*player number*/));
+
+    // store the player controller value inside my toon tanks player controller var 
+    ToonTanksPlayerController = Cast<AToonTanksPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+
+	// since I'm calling the function from inside another function that was already declared here, I don't need to use AToonTanksGameMode::
+    StartGame();
+
+    // if player controller is enabled (true)
+    if (ToonTanksPlayerController)
+    {
+        // set it to false: restrict tanks movement
+        ToonTanksPlayerController->SetPlayerEnabledState(false);
+
+        // create a timer var from the type FTimerHandle
+        FTimerHandle PlayerEnabledTimerHandle;
+
+        // set a local variable for the timer Delegate so when a specif time delay has passed, this delegate function will call its callback function - SetPlayerEnabledSt passing in true as a parameter to enable player's movements when the timer is finished counting.
+        FTimerDelegate PlayerEnabledTimerDelegate = FTimerDelegate::CreateUObject(
+            ToonTanksPlayerController, /* user object that we are talking about here */
+            &AToonTanksPlayerController::SetPlayerEnabledState, /* address of the callback function that will be called */
+            true /* boolean value that will be passed back to the SetPlayerEnabledState callback function when it gets called in the end of the timer delay*/
+        );
+        // set my timer
+        GetWorldTimerManager().SetTimer(PlayerEnabledTimerHandle, /* my timer handle var */
+        PlayerEnabledTimerDelegate, /* my timer Delegate */
+        StartDelay, /* float for the time delay */
+        false /* false so that this timer doesn't loop */ 
+        ); 
+    }
+
+```
 
 
 ### 5.3: Death.
@@ -650,7 +717,7 @@ Open BP_ToonTanksPlayerController, in Class > PlayerController class: change the
 
 #### 5.3.1: ActorDied() function
 
-In ToonTanksGameMode Declare the ActorDied() function. Add a Tank variable to check if the dead actor was the tank or the tower. Override BeginPlay().
+In ToonTanksGameMode.h Declare the ActorDied() function. Add a Tank variable to check if the dead actor was the tank or the tower. Override BeginPlay().
 ```cpp
 public:
 
@@ -669,7 +736,8 @@ private:
 ```
 
 In ToonTanksGameMode.cpp Define ActorDied() function. If the actor who died was the tank (and not the tower) call the HandleDestruction() function.
-Define BeginPlay() and initialize the tank variable as player0.
+Define BeginPlay() and call HandleGameStart() from whithin it
+Define a HandleGameStart() function to define when the game can start (Timer), when the player can be enabled to move once the game starts and to initialize the ToonTanksPlayerController variable
 ```cpp
 void AToonTanksGameMode::ActorDied(AActor* DeadActor)
 {
@@ -679,12 +747,9 @@ void AToonTanksGameMode::ActorDied(AActor* DeadActor)
         Tank->HandleDestruction();
 
         // Check if player controller is valid
-            // access the private function through a public getter function
-            // check if out var that stores the player controller is valid
         if (ToonTanksPlayerController)
         {
             // disable input, disable mouse cursor
-                // include our creted class ToonTanksPlayerController, declare it and access its method SetPlayerEnabled state passing false as a boolean
             ToonTanksPlayerController->SetPlayerEnabledState(false);
         }   
         // false for not winning the game
@@ -706,15 +771,6 @@ void AToonTanksGameMode::ActorDied(AActor* DeadActor)
         }
     }
 }
-
-void AToonTanksGameMode::BeginPlay()
-{
-    // Use super to access parent BeginPlay functionality 
-    Super::BeginPlay();
-
-    HandleGameStart();
-}
-
 ```
 
 #### 5.3.1: Call the ActorDied() function from the HealthComponent class to perform the death actions when Health reaches 0.
