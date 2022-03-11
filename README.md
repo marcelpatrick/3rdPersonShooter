@@ -7,7 +7,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
 3. User Input
 4. Actions and Events: (Hit Events, Health Component, Apply Damage)
-5. Game Rules and Game Mode and Game Controller: (Death, Winning, Loosing)
+5. Game Rules, Game Mode and Game Controller: (Death, Winning, Loosing)
 
 ## 1: Create Components
 
