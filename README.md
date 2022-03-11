@@ -642,13 +642,13 @@ Create a BP_ToonTanksPlayerController blueprint based on this ToonTanksPlayerCon
 Open BP_ToonTanksPlayerController, in Class > PlayerController class: change the player controller to our custom BP_ToonTanksPlayerController.
 
 
-#### 5.3: Death.
+### 5.3: Death.
 
 - **HIT**: Projectile Component hits an Actor > it triggers a Hit Event > the Multicast Delegate function **OnComponentHit**, in the Projectile class, listens to this event and broadcasts **FHitResult** to the Callback Function **OnHit()**, also in the Projectile class, bound to it by **AddDynamic** 
    - **DAMAGE**: > the **OnHit()** Callback function will apply the damage using **UGamePlaystatics::ApplyDamage()** function inside it > **UGameplayStatics::ApplyDamage()** triggers a Damage Event > the Multicast Delegate function **OnTakeAnyDamage**, in HealthComponent class, listens to this event and broadcasts the damage parameters to the Callback function **DamageTaken()**, also in the HealthComponent class, bound to it by **AddDynamic** > **DamageTaken()** Callback function updates the health variables declared in HealthComponent.h, decreasing the health of the damaged actors
        - **DEATH**: > (If Health <= 0) > From inside **DamageTaken()** callback function, call the **ActorDied()** function in the ToonTanksGameMode class > From inside **ActorDied()**, call the **HandleDestruction()** function in the BasePawn class that defines what happens when the actor gets destroyed - special effects, particles, sound - and hides the actor from the game so that it is no longer visible.
 
-#### 5.3: ActorDied() function
+#### 5.3.1: ActorDied() function
 
 In ToonTanksGameMode Declare the ActorDied() function. Add a Tank variable to check if the dead actor was the tank or the tower. Override BeginPlay().
 ```cpp
@@ -717,7 +717,7 @@ void AToonTanksGameMode::BeginPlay()
 
 ```
 
-Call the ActorDied() function from the HealthComponent class to perform the death actions when Health reaches 0.
+#### 5.3.1: Call the ActorDied() function from the HealthComponent class to perform the death actions when Health reaches 0.
 
 In HealthComponent.cpp, call ActorDied() from the DamageTaken() callback function to perform death when damage makes the Health variables reach 0.
 ```cpp
@@ -733,7 +733,7 @@ void UHealthComponent::DamageTaken(AActor *DamagedActor, float Damage, const UDa
 ```
 
 
-#### 5.4: HandleDestruction() function.
+### 5.4: Define what actions happen when player gets destroyed.
 
 In BasePawn.h, declare the HandleDestruction() function:
 ```cpp
