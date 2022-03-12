@@ -8,6 +8,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 3. User Input
 4. Actions and Events: (Hit Events, Health Component, Apply Damage)
 5. Game Rules, Game Mode and Game Controller: (Game Cycle: Start > Death > Winning, Loosing > End)
+6. Special Effects: (Sounds, Particles)
 
 # 1: Create Components
 
@@ -945,6 +946,10 @@ Create an event game over, link it to Create WPB End Game Widget and ourput Set 
 ![image](https://user-images.githubusercontent.com/12215115/158021553-acd3cce7-54cb-422a-be3e-dc0857058fba.png)
 
 
+# 6: Special Effects
+
+
+## 6.1: Particle Systems
 
 ***** PAREI 169: ***********
 
