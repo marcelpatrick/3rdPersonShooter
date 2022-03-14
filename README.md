@@ -1038,10 +1038,48 @@ In BP_Projectile > select BP_Projectile > in our HitParticles variable field > s
 
 In BP_Projectile > Event Grapgh > select trail particles > details > Particles > Template variable > select projectile trail
 
+In BP_PawnTank > select BP_PawnTank(self) > in Details > Combat > Death Particles > select the particles mesh we are going to use
+
+In BP_PawnTurret > select BP_PawnTurret(self) > in Details > Combat > Death Particles > select the particles mesh we are going to use
+
+## 6.2: Sounds
+
+### 6.2.1: Declare Variables
+
+In Projectile.h, Declare the sound pointer variables of type USoundBase*
+```cpp
+private:
+	// var for sound
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	USoundBase* LaunchSound;
+
+	// var for sound
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	USoundBase* HitSound;
+```
+
+In BasePawn.h, declare a sound for when our any of the actors die
+```cpp
+private:
+	// var for sound
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class USoundBase* DeathSound;
+```
+
+### 6.2.2: Play Sounds when actors get hit or die
+
+
+******************* PAREI 172: 5:00 *******************
 
 
 
 
 
 
+### 6.2.3: Set the sound components in the Blueprints
 
+In BP_Projectile > Event Grapgh > select BP_Projectile(self) > Details > Combat > HitSound, LaunchSound > select the sound component from the dropdown menu
+
+In BP_PawnTank > Event Grapgh > select BP_PawnTank(self) > Details > Combat > DeathSound > select the sound component from the dropdown menu
+
+In BP_PawnTurret > Event Grapgh > select BP_PawnTurret(self) > Details > Combat > DeathSound > select the sound component from the dropdown menu
