@@ -5,10 +5,13 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 # Project Steps:
 1. Create Components (Parent Classes: BasePawn)
 2. Create Sub-Components (Child Classes: Tank, Tower, Projectile)
-3. User Input
-4. Actions and Events: (Hit Events, Health Component, Apply Damage)
-5. Game Rules, Game Mode and Game Controller: (Game Cycle: Start > Death > Winning, Loosing > End)
-6. Special Effects: (Sounds, Particles)
+3. User Input (Moving the Actor, Firing)
+4. Actions and Events (Hit Events, Health Component, Apply Damage)
+5. Game Rules, Game Mode and Game Controller (Game Cycle: Start > Death > Winning, Loosing > End)
+6. Special Effects (Sounds, Particles)
+
+
+-> #include are not described here and must be added to each respective component when needed. Refer to the code documents.
 
 # 1: Create Components
 
@@ -951,15 +954,89 @@ Create an event game over, link it to Create WPB End Game Widget and ourput Set 
 
 ## 6.1: Particle Systems
 
-***** PAREI 169: ***********
+### 6.1.1: Declare variables
 
+In Projectile.h, Declare pointer variables of the type particle system
+```cpp
+private: 
+	// particle syst var
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class UParticleSystem* HitParticles;
 
+	// particle system component
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	class UParticleSystemComponent* TrailParticles;
+```
 
+In BasePawn.h
+```cpp
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	class UParticleSystem* DeathParticles;
+```
 
+### 6.1.2: Spawn Particles
 
+In Projectile.cpp, Spawn the particle when we hit something, inside the apply damage if statement created previously
+```cpp
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
 
+	if (OtherActor && OtherActor != this && OtherActor != MyOwner)
+	{
+		UGameplayStatics::ApplyDamage(
+			OtherActor, /* damaged actor */
+			Damage, /* damage amount */ 
+			MyOwnerInstigator, /* the controller of the actor who is causing damage */
+			this, /* actor causing the damage */ 
+			DamageTypeClass /* type of the class associated to the type of damage we are causing */
+			);
 
+		// if hit particles is set and valid (not a nullpointer)
+		if (HitParticles)
+		{
+			// Spawn the emmiter effect at this location. dynamically creates and destroys this particlee at run time (it is not a component and cannot be attached to the projectile)
+			UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, GetActorLocation(), GetActorRotation());
+		}
+}
+```
 
+In Projectile.cpp, in the constructor function, construct the smoke trail particle variable and attach it to the root component so that it follows the projectile around.
+```cpp
+AProjectile::AProjectile()
+{
+	// Construct the particle system that will be the smoke trail of the projectile
+	TrailParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Smoke Trail"));
+	// Attach to the projectile root component
+	TrailParticles->SetupAttachment(RootComponent);
+}
+```
+
+In BasePawn.cpp, spawn the death particles emitter when the actor gets destroyed
+```cpp
+// defines what happens when the basepawn and its inherited classes die
+void ABasePawn::HandleDestruction()
+{
+	// Show the explosion when the base pawn object dies
+		// Spawn emitter at its proper location 
+		// Use UGameplayStatics::SpawnEmitterAtLocation
+	if (DeathParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+		this,
+		DeathParticles,
+		GetActorLocation(),
+		GetActorRotation() 
+		);
+	}
+}
+```
+
+### 6.1.3: Set the particle systems in the Blueprints
+
+In BP_Projectile > select BP_Projectile > in our HitParticles variable field > select the particles we are going to use from the drop down.
+
+In BP_Projectile > Event Grapgh > select trail particles > details > Particles > Template variable > select projectile trail
 
 
 
