@@ -870,6 +870,9 @@ public:
 	APlayerController* GetTankPlayerController() const { return TankPlayerController; }
 ```
 In Tank.cpp Define HandleDestruction() funtion and in it call Super::HandleDestruction() to inherit the implementations of this function from the BasePawn.
+Then hide actor so that it disappears 
+Disabled all actions on tick for this actor
+And define its bAlive variable to false so that we know it is dead
 ```cpp
 // defines what happens when the basepawn and its inherited classes die
 void ATank::HandleDestruction()
@@ -877,6 +880,7 @@ void ATank::HandleDestruction()
 	Super::HandleDestruction();
 	SetActorHiddenInGame(true);
 	SetActorTickEnabled(false);
+	bAlive = false;
 }
 ```
 
@@ -1032,7 +1036,7 @@ void ABasePawn::HandleDestruction()
 }
 ```
 
-### 6.1.3: Set the particle systems in the Blueprints
+### 6.1.3: Set particle systems in the Blueprints
 
 In BP_Projectile > select BP_Projectile > in our HitParticles variable field > select the particles we are going to use from the drop down.
 
@@ -1058,7 +1062,7 @@ private:
 	USoundBase* HitSound;
 ```
 
-In BasePawn.h, declare a sound for when our any of the actors die
+In BasePawn.h, declare a sound variable for when our any of the actors die
 ```cpp
 private:
 	// var for sound
@@ -1068,13 +1072,48 @@ private:
 
 ### 6.2.2: Play Sounds when actors get hit or die
 
+In Projectile.cpp, play launch sound when the projectile is spawned and the hit sound when it hits something
+```cpp
+void AProjectile::BeginPlay()
+{
+	// play launch sound as soon as the projectile is spawned
+	if (LaunchSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+		this, /*world context object*/
+		LaunchSound, /*sound*/
+		GetActorLocation() /*location*/ 
+		);
+	}
+	
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor && OtherActor != this && OtherActor != MyOwner)
 
-******************* PAREI 172: 5:00 *******************
+		// check if HitSound var had a value assigned to it and is not null
+		if (HitSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+			this, /*world context object*/
+			HitSound, /*sound*/
+			GetActorLocation() /*location*/ 
+			);
+		}
+```
 
-
-
-
-
+In BasePawn.cpp, play sound when any actor dies
+```cpp
+void ABasePawn::HandleDestruction()
+{
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+		this, 
+		DeathSound,
+		GetActorLocation()
+		);
+	}
+```
 
 ### 6.2.3: Set the sound components in the Blueprints
 
@@ -1083,3 +1122,64 @@ In BP_Projectile > Event Grapgh > select BP_Projectile(self) > Details > Combat 
 In BP_PawnTank > Event Grapgh > select BP_PawnTank(self) > Details > Combat > DeathSound > select the sound component from the dropdown menu
 
 In BP_PawnTurret > Event Grapgh > select BP_PawnTurret(self) > Details > Combat > DeathSound > select the sound component from the dropdown menu
+
+## 6.3: Camera Shake
+
+### 6.3.1: Create Blueprints
+
+Create a blueprint of class CameraShake, HitCameraShake and another, DeathCameraShake
+
+Inside HitCameraShake and DeathCameraShake > Event Graph > Details > Oscilation > custimize Oscilation and loc oscilation variables to specify our camera movement for when actors get hit and for when actors die.
+
+### 6.3.2: Declare Variables
+
+In Projectile.h, declare the camera shake variable for when the projectile is spawned
+```cpp
+private: 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	// TSubClassOf<> is a template function that creates a variable that can store a UClass type. it is used to spawn actors in our world that are blueprint based (such as our HitCameraShake blueprint)
+	TSubclassOf<class UCameraShake> HitCameraShakeClass;
+```
+
+In BasePawn.h, declare a camera shake variable for when any actor dies
+```cpp
+private:
+	// var for camera shake
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<class UCameraShake> DeathCameraShakeClass;
+```
+
+### 6.3.3: Define Variables and Functions
+
+In Projectile.cpp, call a camera shake function passing in our camera shake variable
+```cpp
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+		// Perform camera Shake
+		if (HitCameraShakeClass)
+		{
+			// Pass in our HitCameraShake TSubclassOf var > HitCameraShakeClass is exposed in BP_Projectile > in BP_Projectile, assign our HitCameraShake blueprint to our HitCameraShakeClass variable 
+			// On hit > our ClientPlayCameraShake function will perform the specific camera shake based on the shake parameters inside our HitCameraShakeClass var that were passed in by our HitCameraShake blueprint
+			GetWorld()->GetFirstPlayerController()->ClientPlayCameraShake(HitCameraShakeClass);
+		}
+	}
+```
+
+In BasePawn.cpp, call a camera shake function and pass in our camera shake variable
+```cpp
+void ABasePawn::HandleDestruction()
+{
+	if (DeathCameraShakeClass)
+	{
+		GetWorld()->GetFirstPlayerController()->ClientPlayCameraShake(DeathCameraShakeClass);
+	}
+}
+```
+
+### 6.3.4: Set Camera Shake components in the blueprints
+
+In BP_Projectile > Event Graph > Details > Combat > in Hit Camera Shake Class variable, select the specific camera shake Blueprint that we will use for this component - in this case, "HitCameraShake"
+
+In BP_PawnTank and BP_PawnTurret > Event Graph > Details > Combat > in Hit Camera Shake Class variable, select the specific camera shake Blueprint that we will use for this component - in this case, "DeathCameraShake"
+
+In BP_PawnTank > View Port > Details > Lag > select values for Enabke Camera Lag and Enabke Camera Rotation Lag to allow a delay in camera movement and make it smoother
