@@ -15,7 +15,7 @@ This is a tank battle 3rd person shooter game. It uses Unreal Engine 4.24 and co
 
 # 1: Create Components
 
-Create a BasePawn C++ Class. This will be the parent class of all of our tank and tower components in the game.
+Create a BasePawn C++ Class inheriting from Pawn class. This will be the parent class of all of our tank and tower components in the game.
 
 ## 1.1: Declare Component Variables:
 In its header file initialize and expose the variables that will correspond to each of the components that we will use in the world:
