@@ -456,7 +456,7 @@ private:
 		AActor* OtherActor, // Actor that got hit
 		UPrimitiveComponent* OtherComp, // Other component that was hit (static mesh component associated to the actor)
 		FVector NormalImpulse, // Force vector or impulse that will be imprinted by the hit 
-		const FHitResult& Hit); // Variable that will store info about the hit
+		const FHitResult& Hit); // const reference Variable that will store info about the hit
 ```
 
 In Projectile.cpp: Define the OnHit Callback function to be called by OnComponentHit and specify what actions it will perform.
