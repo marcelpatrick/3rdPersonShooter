@@ -534,7 +534,7 @@ Include our custom component in our Blueprint. In BP_PawnTank, event graph, Heal
 
 Use UGameplayStatics::ApplyDamage to trigger the damage event > Use the OnTakeAnyDamage() Delegate Function to Broadcast the damage event > and call the DamageTaken() Callback Function to > do what the damage will cause to the actors' health.
 
-## 4.4: Multicast Delegate:
+## 4.3.1: Multicast Delegate:
 
 In HealthComponent.cpp, Define the Multicast Delegate Function OnTakeAnyDamage and bind it to its Callback Function DamageTaken.
 ```cpp
@@ -548,7 +548,7 @@ void UHealthComponent::BeginPlay()
 }
 ```
 
-## 4.5: Callback Function:
+## 4.3.2: Callback Function:
 
 In HealthComponent.h Declare the Callback Function DamageTaken()
 ```cpp
