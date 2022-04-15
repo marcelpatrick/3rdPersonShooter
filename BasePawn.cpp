@@ -32,12 +32,12 @@ ABasePawn::ABasePawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create a UCapsuleComponent variable to which we can later assign the other components of this object
+	// Construct a UCapsuleComponent variable to which we can later assign the other components of this object
 		// CreateDefaultSubobject is a template function: 
-		// A function that adapts to the type that is passed whithing <>
-		// the text in the () is the name of this template function
-		// It returns an address of the created type function so it needs to be store inside a pointer
-		// So we are using a UCapsuleComponent to construct an object of this type
+			// A function that adapts to the type that is passed whithing <>
+			// the text in the () is the name of this template function
+			// It returns an address of the created type function so it needs to be store inside a pointer
+			// So we are using a UCapsuleComponent to construct an object of this type
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Collider"));
 
 	// Declare the components you are going to use
@@ -57,7 +57,6 @@ ABasePawn::ABasePawn()
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Spawn Point")); 
 	ProjectileSpawnPoint->SetupAttachment(TurretMesh);
-
 }
 
 // defines what happens when the basepawn and its inherited classes die
